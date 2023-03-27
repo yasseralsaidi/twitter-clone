@@ -1,56 +1,94 @@
-import { useRouter } from 'next/router';
-import { useCallback, useMemo } from 'react';
-import { AiFillHeart, AiOutlineHeart, AiOutlineMessage } from 'react-icons/ai';
-import { formatDistanceToNowStrict } from 'date-fns';
+import { useRouter } from "next/router";
+import { useCallback, useMemo, useState } from "react";
+import {
+  AiFillHeart,
+  AiOutlineHeart,
+  AiOutlineMessage,
+  AiOutlineDelete,
+} from "react-icons/ai";
+import { VscEdit } from "react-icons/vsc";
+import { formatDistanceToNowStrict } from "date-fns";
+import useLoginModal from "@/hooks/useLoginModal";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useLike from "@/hooks/useLike";
+import Avatar from "../Avatar";
+import axios from "axios";
+import toast from "react-hot-toast";
+import usePosts from "@/hooks/usePosts";
+import usePost from "@/hooks/usePost";
 
-import useLoginModal from '@/hooks/useLoginModal';
-import useCurrentUser from '@/hooks/useCurrentUser';
-import useLike from '@/hooks/useLike';
-
-import Avatar from '../Avatar';
 interface PostItemProps {
-  data: Record<string, any>;
+  postData: Record<string, any>;
   userId?: string;
 }
 
-const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
+const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
+  const postId = postData.id;
   const router = useRouter();
+  const { mutate: mutatePosts } = usePosts();
+  const { mutate: mutatePost } = usePost(postId as string);
   const loginModal = useLoginModal();
-
+  const [isLoading, setIsLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
-  const { hasLiked, toggleLike } = useLike({ postId: data.id, userId});
+  const { hasLiked, toggleLike } = useLike({ postId: postId, userId });
 
-  const goToUser = useCallback((ev: any) => {
-    ev.stopPropagation();
-    router.push(`/users/${data.user.id}`)
-  }, [router, data.user.id]);
+  const editPost = async (event) => {
+    event.stopPropagation();
+    alert("edit post");
+  };
+
+  const deletePost = async (event) => {
+    event.stopPropagation();
+    try {
+      const url = `/api/deletePost?postData=${JSON.stringify(postData)}`;
+      await axios.delete(url);
+      toast.success("post deleted");
+      mutatePosts();
+      mutatePost();
+    } catch (error) {
+      toast.error("Something went wrong");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const goToUser = useCallback(
+    (event) => {
+      event.stopPropagation();
+      router.push(`/users/${postData.user.id}`);
+    },
+    [router, postData.user.id]
+  );
 
   const goToPost = useCallback(() => {
-    router.push(`/posts/${data.id}`);
-  }, [router, data.id]);
+    router.push(`/posts/${postData.id}`);
+  }, [router, postData.id]);
 
-  const onLike = useCallback(async (ev: any) => {
-    ev.stopPropagation();
+  const onLike = useCallback(
+    async (event) => {
+      event.stopPropagation();
 
-    if (!currentUser) {
-      return loginModal.onOpen();
-    }
+      if (!currentUser) {
+        return loginModal.onOpen();
+      }
 
-    toggleLike();
-  }, [loginModal, currentUser, toggleLike]);
+      toggleLike();
+    },
+    [loginModal, currentUser, toggleLike]
+  );
 
   const LikeIcon = hasLiked ? AiFillHeart : AiOutlineHeart;
 
   const createdAt = useMemo(() => {
-    if (!data?.createdAt) {
+    if (!postData?.createdAt) {
       return null;
     }
 
-    return formatDistanceToNowStrict(new Date(data.createdAt));
-  }, [data.createdAt])
+    return formatDistanceToNowStrict(new Date(postData.createdAt));
+  }, [postData.createdAt]);
 
   return (
-    <div 
+    <div
       onClick={goToPost}
       className="
         border-b-[1px] 
@@ -59,41 +97,41 @@ const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
         cursor-pointer 
         hover:bg-neutral-900 
         transition
-      ">
+      "
+    >
       <div className="flex flex-row items-start gap-3">
-        <Avatar userId={data.user.id} />
+        <Avatar userId={postData.user.id} />
         <div>
           <div className="flex flex-row items-center gap-2">
-            <p 
-              onClick={goToUser} 
+            <p
+              onClick={goToUser}
               className="
                 text-white 
                 font-semibold 
                 cursor-pointer 
                 hover:underline
-            ">
-              {data.user.name}
+            "
+            >
+              {postData.user.name}
             </p>
-            <span 
-              onClick={goToUser} 
+            <span
+              onClick={goToUser}
               className="
                 text-neutral-500
                 cursor-pointer
                 hover:underline
                 hidden
                 md:block
-            ">
-              @{data.user.username}
+            "
+            >
+              @{postData.user.username}
             </span>
-            <span className="text-neutral-500 text-sm">
-              {createdAt}
-            </span>
+            <span className="text-neutral-500 text-sm">{createdAt}</span>
           </div>
-          <div className="text-white mt-1">
-            {data.body}
-          </div>
+          <div className="text-white mt-1">{postData.body}</div>
+
           <div className="flex flex-row items-center mt-3 gap-10">
-            <div 
+            <div
               className="
                 flex 
                 flex-row 
@@ -103,12 +141,12 @@ const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
                 cursor-pointer 
                 transition 
                 hover:text-sky-500
-            ">
+            "
+            >
               <AiOutlineMessage size={20} />
-              <p>
-                {data.comments?.length || 0}
-              </p>
+              <p>{postData.comments?.length || 0}</p>
             </div>
+
             <div
               onClick={onLike}
               className="
@@ -120,17 +158,54 @@ const PostItem: React.FC<PostItemProps> = ({ data = {}, userId }) => {
                 cursor-pointer 
                 transition 
                 hover:text-red-500
-            ">
-              <LikeIcon color={hasLiked ? 'red' : ''} size={20} />
-              <p>
-                {data.likedIds.length}
-              </p>
+            "
+            >
+              <LikeIcon color={hasLiked ? "red" : ""} size={20} />
+              <p>{postData.likedIds.length}</p>
+            </div>
+
+            <div
+              onClick={editPost}
+              className="
+                flex 
+                flex-row 
+                items-center 
+                text-neutral-500 
+                gap-2 
+                cursor-pointer 
+                transition 
+                hover:text-sky-500
+            "
+            >
+              <VscEdit size={20} />
+            </div>
+
+            <div
+              onClick={deletePost}
+              className="
+                flex 
+                flex-row 
+                items-center 
+                text-neutral-500 
+                gap-2 
+                cursor-pointer 
+                transition 
+                hover:text-red-500
+            "
+            >
+              <AiOutlineDelete size={20} />
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default PostItem;
+
+export const stopEventPropagationTry = (event) => {
+  if (event.target === event.currentTarget) {
+    event.stopPropagation();
+  }
+};

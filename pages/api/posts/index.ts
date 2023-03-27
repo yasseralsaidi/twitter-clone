@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    
+
     if (req.method === 'POST') {
       const { currentUser } = await serverAuth(req);
       const { body } = req.body;
@@ -27,7 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method === 'GET') {
       const { userId } = req.query;
 
-      console.log({ userId })
+      // console.log({ userId })
 
       let posts;
 
