@@ -9,6 +9,7 @@ import {
 import { VscEdit } from "react-icons/vsc";
 import { formatDistanceToNowStrict } from "date-fns";
 import useLoginModal from "@/hooks/useLoginModal";
+import useEditTweetModal from "@/hooks/useEditTweetModal";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import useLike from "@/hooks/useLike";
 import Avatar from "../Avatar";
@@ -22,19 +23,28 @@ interface PostItemProps {
   userId?: string;
 }
 
+export const stopEventPropagationTry = (event) => {
+  if (event.target === event.currentTarget) {
+    event.stopPropagation();
+  }
+};
+
 const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
   const postId = postData.id;
   const router = useRouter();
   const { mutate: mutatePosts } = usePosts();
   const { mutate: mutatePost } = usePost(postId as string);
   const loginModal = useLoginModal();
+  const editTweetModal = useEditTweetModal();
   const [isLoading, setIsLoading] = useState(false);
   const { data: currentUser } = useCurrentUser();
   const { hasLiked, toggleLike } = useLike({ postId: postId, userId });
 
   const editPost = async (event) => {
     event.stopPropagation();
-    alert("edit post");
+    editTweetModal.postId = postId;
+    editTweetModal.isComment = false;
+    return editTweetModal.onOpen();
   };
 
   const deletePost = async (event) => {
@@ -45,6 +55,7 @@ const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
       toast.success("post deleted");
       mutatePosts();
       mutatePost();
+      router.push("/");
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
@@ -94,7 +105,7 @@ const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
         border-b-[1px] 
         border-neutral-800 
         p-5 
-        cursor-pointer 
+        cursor-pointer
         hover:bg-neutral-900 
         transition
       "
@@ -203,9 +214,3 @@ const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
 };
 
 export default PostItem;
-
-export const stopEventPropagationTry = (event) => {
-  if (event.target === event.currentTarget) {
-    event.stopPropagation();
-  }
-};

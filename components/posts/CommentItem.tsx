@@ -10,6 +10,7 @@ import usePost from "@/hooks/usePost";
 import deleteThisComment from "@/pages/api/deleteComment";
 import { VscEdit } from "react-icons/vsc";
 import { AiOutlineDelete } from "react-icons/ai";
+import useEditTweetModal from "@/hooks/useEditTweetModal";
 
 interface CommentItemProps {
   commentData: Record<string, any>;
@@ -17,13 +18,15 @@ interface CommentItemProps {
 
 const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
   const postId = commentData.postId;
+  const commentId = commentData.id;
 
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { mutate: mutatePosts } = usePosts();
   const { mutate: mutatePost } = usePost(postId as string);
-  const { mutate: mutateComment } = useComment(postId as string);
+  const { mutate: mutateComment } = useComment(postId, commentId);
   const [body, setBody] = useState("");
+  const editTweetModal = useEditTweetModal();
 
   const goToUser = useCallback(
     (ev: any) => {
@@ -34,8 +37,12 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
     [router, commentData.user.id]
   );
 
-  const editComment = async () => {
-    alert("edit comment");
+  const editComment = async (event) => {
+    event.stopPropagation();
+    editTweetModal.isComment = true;
+    editTweetModal.postId = postId;
+    editTweetModal.commentId = commentData.id;
+    return editTweetModal.onOpen();
   };
 
   const deleteComment = async () => {
@@ -65,6 +72,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
 
   return (
     <div
+      onClick={() => router.push(`/posts/${postId}/comments/${commentId}`)}
       className="
         border-b-[1px] 
         border-neutral-800 
