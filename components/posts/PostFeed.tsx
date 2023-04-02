@@ -1,3 +1,5 @@
+"use client";
+
 import usePosts from "@/hooks/usePosts";
 import PostItem from "./PostItem";
 

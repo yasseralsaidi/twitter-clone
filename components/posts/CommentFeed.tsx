@@ -1,3 +1,5 @@
+"use client";
+
 import CommentItem from "./CommentItem";
 
 interface CommentFeedProps {

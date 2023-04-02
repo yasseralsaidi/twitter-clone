@@ -1,4 +1,6 @@
-import { useRouter } from "next/router";
+"use client";
+
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
 import Avatar from "../Avatar";
@@ -7,7 +9,6 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import usePosts from "@/hooks/usePosts";
 import usePost from "@/hooks/usePost";
-import deleteThisComment from "@/pages/api/deleteComment";
 import { VscEdit } from "react-icons/vsc";
 import { AiOutlineDelete } from "react-icons/ai";
 import useEditTweetModal from "@/hooks/useEditTweetModal";

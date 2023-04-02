@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { BiCalendar } from "react-icons/bi";
 import { format } from "date-fns";

@@ -1,4 +1,5 @@
-import { useRouter } from "next/router";
+"use client";
+
 import { ClipLoader } from "react-spinners";
 
 import useUser from "@/hooks/useUser";
@@ -7,12 +8,10 @@ import PostFeed from "@/components/posts/PostFeed";
 import Header from "@/components/Header";
 import UserBio from "@/components/users/UserBio";
 import UserHero from "@/components/users/UserHero";
+import { useRouter, useSearchParams } from "next/navigation";
 
-
-
-const UserView = () => {
-  const router = useRouter();
-  const { userId } = router.query;
+const UserView = ({ params }) => {
+  const userId = params?.userId;
 
   const { data: fetchedUser, isLoading } = useUser(userId as string);
 
@@ -21,7 +20,7 @@ const UserView = () => {
       <div className="flex justify-center items-center h-full">
         <ClipLoader color="lightblue" size={80} />
       </div>
-    )
+    );
   }
 
   return (
@@ -31,7 +30,7 @@ const UserView = () => {
       <UserBio userId={userId as string} />
       <PostFeed userId={userId as string} />
     </>
-   );
-}
- 
+  );
+};
+
 export default UserView;
