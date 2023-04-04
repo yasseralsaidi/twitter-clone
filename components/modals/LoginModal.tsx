@@ -10,6 +10,8 @@ import useRegisterModal from "@/hooks/useRegisterModal";
 import Input from "../Input";
 import Modal from "../Modal";
 
+import { EyeInvisibleOutlined, EyeOutlined } from "@ant-design/icons";
+
 const LoginModal = () => {
   const loginModal = useLoginModal();
   const registerModal = useRegisterModal();
@@ -17,6 +19,12 @@ const LoginModal = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isVisible, setVisible] = useState(false);
+
+  const toggle = () => {
+    setVisible(!isVisible);
+  };
 
   const onSubmit = useCallback(async () => {
     try {
@@ -50,13 +58,22 @@ const LoginModal = () => {
         value={email}
         disabled={isLoading}
       />
-      <Input
-        placeholder="Password"
-        type="password"
-        onChange={(e) => setPassword(e.target.value)}
-        value={password}
-        disabled={isLoading}
-      />
+      <div style={{ position: "relative" }}>
+        <Input
+          placeholder="Password"
+          type={!isVisible ? "password" : "text"}
+          onChange={(e) => setPassword(e.target.value)}
+          value={password}
+          disabled={isLoading}
+        />
+        <span
+          className="icon text-white cursor-pointer"
+          onClick={toggle}
+          style={{ position: "absolute", right: 20, top: 14 }}
+        >
+          {isVisible ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+        </span>
+      </div>
     </div>
   );
 
