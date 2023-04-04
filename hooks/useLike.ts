@@ -25,13 +25,14 @@ const useLike = ({ postId, userId }: { postId: string, userId?: string }) => {
       return loginModal.onOpen();
     }
 
-    try {
-      let request;
+    let request;
+    const data = fetchedPost;
 
+    try {
       if (hasLiked) {
-        request = () => axios.delete('/api/like', { data: { postId } });
+        request = () => axios.delete(`/api/like/${postId}`, { data });
       } else {
-        request = () => axios.post('/api/like', { postId });
+        request = () => axios.post(`/api/like/${postId}`, data);
       }
 
       await request();
@@ -42,7 +43,7 @@ const useLike = ({ postId, userId }: { postId: string, userId?: string }) => {
     } catch (error) {
       toast.error('Something went wrong');
     }
-  }, [currentUser, hasLiked, postId, mutateFetchedPosts, mutateFetchedPost, loginModal]);
+  }, [currentUser, fetchedPost, loginModal, hasLiked, mutateFetchedPost, mutateFetchedPosts, postId]);
 
   return {
     hasLiked,

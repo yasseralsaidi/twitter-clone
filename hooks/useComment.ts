@@ -1,3 +1,4 @@
+
 import useSWR from 'swr';
 
 import fetcher from '@/libs/fetcher';
@@ -14,3 +15,11 @@ const useComment = (postId: string, commentId: string) => {
 };
 
 export default useComment;
+
+
+
+
+
+
+
+

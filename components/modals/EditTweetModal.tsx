@@ -10,43 +10,55 @@ import useEditTweetModal from "@/hooks/useEditTweetModal";
 import axios from "axios";
 import usePosts from "@/hooks/usePosts";
 import useComment from "@/hooks/useComment";
+import useCurrentUser from "@/hooks/useCurrentUser";
+import useComments from "@/hooks/useComments";
+import { usePathname } from "next/navigation";
 
-const EditTweetModal = () => {
+export default function EditTweetModal() {
+  // const path = usePathname();
+  // const postId = path?.split("/")[2] as string;
+  // const commentId = path?.split("/")[4] as string;
+
   const postId = useEditTweetModal().postId;
   const commentId = useEditTweetModal().commentId;
   const isComment = useEditTweetModal().isComment;
-  const { data: currentPostData } = usePost(postId);
-  const { data: currentCommentData } = useComment(postId, commentId);
+
+  const { data: currentUser } = useCurrentUser();
+  const { data: postData } = usePost(postId);
+  const { data: commentData } = useComment(postId, commentId);
   const editTweetModal = useEditTweetModal();
-  const { mutate: mutatePost } = usePost(postId);
   const { mutate: mutatePosts } = usePosts();
+  const { mutate: mutatePost } = usePost(postId);
+  const { mutate: mutateComments } = useComments();
   const { mutate: mutateComment } = useComment(postId, commentId);
 
   const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    !isComment
-      ? setContent(currentPostData?.body)
-      : setContent(currentCommentData?.body);
-  }, [currentCommentData?.body, currentPostData?.body, isComment]);
+    !isComment ? setContent(postData?.body) : setContent(commentData?.body);
+  }, [commentData?.body, isComment, postData?.body]);
 
   const onSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
-      const url = !isComment ? "/api/updatePost" : "/api/updateComment";
+      const url = !isComment
+        ? `/api/posts/${postId}`
+        : `/api/posts/${postId}/comments/${commentId}`;
 
       await axios.patch(url, {
         content,
-        currentPostData,
-        currentCommentData,
+        postData,
+        commentData,
       });
 
       !isComment
         ? toast.success("post updated!")
         : toast.success("comment updated!");
-      mutatePost();
+
       mutatePosts();
+      mutatePost();
+      mutateComments();
       mutateComment();
       editTweetModal.onClose();
     } catch (error) {
@@ -55,14 +67,17 @@ const EditTweetModal = () => {
       setIsLoading(false);
     }
   }, [
+    commentData,
+    commentId,
     content,
-    currentCommentData,
-    currentPostData,
     editTweetModal,
     isComment,
     mutateComment,
+    mutateComments,
     mutatePost,
     mutatePosts,
+    postData,
+    postId,
   ]);
 
   const onToggle = useCallback(() => {
@@ -85,13 +100,11 @@ const EditTweetModal = () => {
     <Modal
       disabled={isLoading}
       isOpen={editTweetModal.isOpen}
-      title="Edit Tweet"
+      title={!isComment ? "Edit Post" : "Edit Comment"}
       actionLabel="Edit"
       onClose={editTweetModal.onClose}
       onSubmit={onSubmit}
       body={bodyContent}
     />
   );
-};
-
-export default EditTweetModal;
+}

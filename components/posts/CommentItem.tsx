@@ -12,6 +12,7 @@ import usePost from "@/hooks/usePost";
 import { VscEdit } from "react-icons/vsc";
 import { AiOutlineDelete } from "react-icons/ai";
 import useEditTweetModal from "@/hooks/useEditTweetModal";
+import useComments from "@/hooks/useComments";
 
 interface CommentItemProps {
   commentData: Record<string, any>;
@@ -25,18 +26,9 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
   const router = useRouter();
   const { mutate: mutatePosts } = usePosts();
   const { mutate: mutatePost } = usePost(postId as string);
+  const { mutate: mutateComments } = useComments();
   const { mutate: mutateComment } = useComment(postId, commentId);
-  const [body, setBody] = useState("");
   const editTweetModal = useEditTweetModal();
-
-  const goToUser = useCallback(
-    (ev: any) => {
-      ev.stopPropagation();
-
-      router.push(`/users/${commentData.user.id}`);
-    },
-    [router, commentData.user.id]
-  );
 
   const editComment = async (event) => {
     event.stopPropagation();
@@ -46,15 +38,16 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
     return editTweetModal.onOpen();
   };
 
-  const deleteComment = async () => {
+  const deleteComment = async (event) => {
+    event.stopPropagation();
     try {
-      const url = `/api/deleteComment?commentData=${JSON.stringify(
-        commentData
-      )}`;
-      await axios.delete(url);
+      const url = `/api/posts/${postId}/comments/${commentId}`;
+      const data = commentData;
+      await axios.delete(url, { data });
       toast.success("comment deleted");
       mutatePosts();
       mutatePost();
+      mutateComments();
       mutateComment();
     } catch (error) {
       toast.error("Something went wrong");
@@ -62,6 +55,14 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
       setIsLoading(false);
     }
   };
+
+  const goToUser = useCallback(
+    (event) => {
+      event.stopPropagation();
+      router.push(`/users/${commentData.user.id}`);
+    },
+    [router, commentData.user.id]
+  );
 
   const createdAt = useMemo(() => {
     if (!commentData?.createdAt) {
@@ -73,12 +74,11 @@ const CommentItem: React.FC<CommentItemProps> = ({ commentData = {} }) => {
 
   return (
     <div
-      onClick={() => router.push(`/posts/${postId}/comments/${commentId}`)}
+      // onClick={() => router.push(`/posts/${postId}/comments`)}
       className="
         border-b-[1px] 
         border-neutral-800 
         p-5 
-        cursor-pointer 
         hover:bg-neutral-900 
         transition
       "

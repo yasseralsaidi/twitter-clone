@@ -35,11 +35,17 @@ const RegisterModal = () => {
     try {
       setIsLoading(true);
 
+      const registerData = {
+        email: email,
+        password: password,
+        username: username,
+        name: name,
+      };
+
+      alert(JSON.stringify(registerData));
+
       await axios.post("/api/register", {
-        email,
-        password,
-        username,
-        name,
+        registerData,
       });
 
       setIsLoading(false);

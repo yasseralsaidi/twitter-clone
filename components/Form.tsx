@@ -27,19 +27,19 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
   const { mutate: mutatePosts } = usePosts();
   const { mutate: mutatePost } = usePost(postId as string);
 
-  const [body, setBody] = useState("");
+  const [content, setContent] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = useCallback(async () => {
     try {
       setIsLoading(true);
 
-      const url = isComment ? `/api/comments?postId=${postId}` : "/api/posts";
+      const url = !isComment ? "/api/posts" : `/api/posts/${postId}/comments`;
 
-      await axios.post(url, { body });
+      await axios.post(url, { content });
 
       toast.success("Tweet created");
-      setBody("");
+      setContent("");
       mutatePosts();
       mutatePost();
     } catch (error) {
@@ -47,7 +47,7 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [body, mutatePosts, isComment, postId, mutatePost]);
+  }, [isComment, postId, content, mutatePosts, mutatePost]);
 
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">
@@ -59,8 +59,8 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
           <div className="w-full">
             <textarea
               disabled={isLoading}
-              onChange={(event) => setBody(event.target.value)}
-              value={body}
+              onChange={(event) => setContent(event.target.value)}
+              value={content}
               className="
                 disabled:opacity-80
                 peer
@@ -87,7 +87,7 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
             />
             <div className="mt-4 flex flex-row justify-end">
               <Button
-                disabled={isLoading || !body}
+                disabled={isLoading || !content}
                 onClick={onSubmit}
                 label="Tweet"
               />

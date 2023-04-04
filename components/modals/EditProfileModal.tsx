@@ -43,12 +43,16 @@ const EditModal = () => {
     try {
       setIsLoading(true);
 
+      const profileData = {
+        name: name,
+        username: username,
+        bio: bio,
+        profileImage: profileImage,
+        coverImage: coverImage,
+      };
+
       await axios.patch("/api/updateProfile", {
-        name,
-        username,
-        bio,
-        profileImage,
-        coverImage,
+        profileData,
       });
       mutateFetchedUser();
 

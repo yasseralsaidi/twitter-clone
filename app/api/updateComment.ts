@@ -13,8 +13,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const commentId = commentData.id;
         const { currentUser } = await serverAuth(req);
 
-        console.log(content);
-
         if (!commentId || typeof commentId !== 'string') {
             throw new Error('Invalid ID');
         }

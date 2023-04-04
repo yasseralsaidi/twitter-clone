@@ -25,14 +25,9 @@ interface PostItemProps {
   userId?: string;
 }
 
-export const stopEventPropagationTry = (event) => {
-  if (event.target === event.currentTarget) {
-    event.stopPropagation();
-  }
-};
-
 const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
   const postId = postData.id;
+
   const router = useRouter();
   const { mutate: mutatePosts } = usePosts();
   const { mutate: mutatePost } = usePost(postId as string);
@@ -44,16 +39,17 @@ const PostItem: React.FC<PostItemProps> = ({ postData = {}, userId }) => {
 
   const editPost = async (event) => {
     event.stopPropagation();
-    editTweetModal.postId = postId;
     editTweetModal.isComment = false;
+    editTweetModal.postId = postId;
     return editTweetModal.onOpen();
   };
 
   const deletePost = async (event) => {
     event.stopPropagation();
     try {
-      const url = `/api/deletePost?postData=${JSON.stringify(postData)}`;
-      await axios.delete(url);
+      const url = `/api/posts/${postId}`;
+      const data = postData;
+      await axios.delete(url, { data });
       toast.success("post deleted");
       mutatePosts();
       mutatePost();
