@@ -42,8 +42,6 @@ const RegisterModal = () => {
         name: name,
       };
 
-      alert(JSON.stringify(registerData));
-
       await axios.post("/api/register", {
         registerData,
       });
